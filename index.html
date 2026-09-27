@@ -61,7 +61,7 @@ button { cursor: pointer; }
 /* ------------------------------------------------------------- top bar -- */
 .topbar {
   display: flex; align-items: center; gap: 12px; padding: 8px 16px; background: var(--surface);
-  border-bottom: 1px solid var(--line); flex-wrap: wrap; position: relative; z-index: 5;
+  border-bottom: 1px solid var(--line); flex-wrap: wrap; position: relative; z-index: 80;
 }
 .brand { display: flex; align-items: center; gap: 8px; font-family: var(--font-display); font-weight: 600; font-size: 20px; letter-spacing: .2px; }
 .brand-mark { width: 28px; height: 28px; border-radius: 7px; background: var(--go); display: grid; grid-template-columns: repeat(2, 7px); gap: 4px; place-content: center; }
@@ -307,6 +307,39 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--li
   .vpad-mid { grid-column: 1 / -1; grid-row: 1; max-width: none; }
   .vpad-mid p { display: none; }
 }
+/* docked under the code */
+.vpad-dock-hint { display: none; }
+.vpad.docked {
+  position: relative; inset: auto; z-index: 3; flex: none; height: clamp(196px, 32vh, 270px);
+  border-top: 2px solid var(--line); background: var(--surface); padding: 0 12px;
+}
+.vpad.docked .vpad-top { padding-block: 6px; gap: 6px; }
+.vpad.docked .vpad-title { font-size: 15px; }
+.vpad.docked .vpad-top .btn { padding: 4px 10px; font-size: 13px; }
+.vpad.docked #vpadFull, .vpad.docked #vpadRate { display: none; }
+.vpad.docked .vpad-body {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-bottom: 8px;
+  --stick: clamp(96px, 20vh, 170px); --face: clamp(34px, 5.6vh, 50px);
+}
+.vpad.docked .vpad-side { flex-direction: row; gap: clamp(8px, 1.6vw, 20px); }
+.vpad.docked .vpad-side:last-child { flex-direction: row-reverse; }
+.vpad.docked .vpad-shoulders { flex-direction: column; width: clamp(52px, 5vw, 72px); max-width: none; gap: 6px; }
+.vpad.docked .vshoulder { height: clamp(32px, 5vh, 44px); font-size: 14px; }
+.vpad.docked .vdpad, .vpad.docked .vface { gap: 3px; }
+.vpad.docked .vface-btn { font-size: 16px; }
+.vpad.docked .vpad-mid { max-width: 230px; gap: 8px; }
+.vpad.docked #vpadHint { display: none; }
+.vpad.docked .vpad-dock-hint { display: block; }
+/* blocks in use by the controller */
+.hp-live > .blocklyPath { stroke: #FFF200 !important; stroke-width: 3px !important; filter: drop-shadow(0 0 5px #FFE600) drop-shadow(0 0 2px #FFE600); }
+:root[data-contrast="high"] .hp-live > .blocklyPath { stroke-width: 5px !important; }
+:root[data-contrast="high"][data-theme="light"] .hp-live > .blocklyPath { stroke: #000000 !important; filter: drop-shadow(0 0 0 #000) drop-shadow(0 0 4px #FFD000); }
+body.dock-open .toast { bottom: calc(clamp(196px, 32vh, 270px) + 14px); }
+.glow-swatch { display: inline-block; width: 14px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px;
+  background: var(--surface-2); box-shadow: 0 0 0 2px #FFF200, 0 0 6px 2px #FFF200; }
+@media (max-width: 900px) {
+  .vpad.docked .vpad-mid { display: none; }
+}
 @media (prefers-reduced-motion: reduce) { .vpad.rumble { animation: none; outline: 4px solid var(--accent); outline-offset: -4px; } }
 
 /* ------------------------------------------------------------ overlays -- */
@@ -323,13 +356,6 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--li
 .pix-grid button { aspect-ratio: 1; border: 0; border-radius: 6px; background: rgba(255,255,255,.08); }
 .modal-row { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; align-items: center; }
 .banner { background: color-mix(in srgb, var(--warn) 16%, var(--surface)); color: var(--ink); padding: 8px 16px; border-bottom: 1px solid var(--line); font-size: 13px; }
-
-.embed-banner { display: flex; gap: 12px; align-items: center; justify-content: space-between; flex-wrap: wrap;
-  background: var(--accent-soft); }
-.modal-text { margin: 0; color: var(--ink); line-height: 1.5; }
-.open-link { display: flex; gap: 6px; }
-.open-link input { flex: 1; min-width: 0; padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--surface-2); font-family: var(--font-mono); font-size: 12px; }
-.modal { width: min(440px, 100%); }
 
 /* Blockly tweaks */
 .blocklyToolboxDiv { font-family: var(--font-body) !important; }
@@ -648,14 +674,15 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--li
 
 <div class="vpad" id="vpad" hidden role="dialog" aria-label="On-screen controller">
   <div class="vpad-top">
-    <span class="vpad-title">On-screen controller</span>
+    <span class="vpad-title" id="vpadTitle">On-screen controller</span>
     <span class="pill" id="vpadHub">Hub not connected</span>
     <span class="pill" id="vpadRate">0 updates/s</span>
     <span class="spacer"></span>
     <button class="btn btn-go" id="vpadDrive">Start driving</button>
     <button class="btn btn-stop" id="vpadStop" disabled>Stop</button>
+    <button class="btn" id="vpadDock" title="Switch between docked under the code and the big full-page controller">Make it big</button>
     <button class="btn" id="vpadFull">Full screen</button>
-    <button class="btn" id="vpadClose">Close</button>
+    <button class="btn" id="vpadClose" aria-label="Close controller">Close</button>
   </div>
   <div class="vpad-body">
     <div class="vpad-side">
@@ -677,6 +704,7 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--li
         <button class="vbtn vmini" data-btn="9">Menu</button>
       </div>
       <p id="vpadHint">Drag the circles to steer. Tap the buttons. Two fingers work on a touchscreen.</p>
+      <p id="vpadDockHint" class="vpad-dock-hint"><span class="glow-swatch" aria-hidden="true"></span>Blocks light up when you use the button or stick they listen to.</p>
     </div>
     <div class="vpad-side">
       <div class="vpad-shoulders">
@@ -691,15 +719,6 @@ kbd { font-family: var(--font-mono); font-size: 11px; border: 1px solid var(--li
       </div>
       <div class="vstick" data-stick="r" aria-label="Right stick"><div class="vknob"></div></div>
     </div>
-  </div>
-</div>
-
-<div class="modal-back" id="openModal" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="openTitle">
-    <h3 id="openTitle">Open HubPilot in its own tab</h3>
-    <p id="openText" class="modal-text"></p>
-    <div class="open-link" id="openLinkRow"><input id="openUrl" readonly aria-label="HubPilot link"><button class="btn btn-small" id="openCopy">Copy link</button></div>
-    <div class="modal-row"><button class="btn" id="openClose">Close</button><button class="btn btn-accent" id="openGo">Open in new tab ↗</button></div>
   </div>
 </div>
 
@@ -5912,15 +5931,8 @@ def _start(source):
     sel.value = sel.dataset.default;
   });
 
-  // embedded in another site (for example a Google Site)? Browsers block Bluetooth and USB
-  // inside a frame unless the frame was given permission, so detect that up front.
-  const framed = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
-  const featurePolicy = document.permissionsPolicy || document.featurePolicy;
-  const featureAllowed = (f) => { try { return featurePolicy ? featurePolicy.allowsFeature(f) : !framed; } catch (e) { return !framed; } };
-  const hubBlocked = framed && !featureAllowed('bluetooth') && !featureAllowed('serial');
-
   // browser support
-  if (!hubBlocked && !SpikeHub.bluetoothAvailable && !SpikeHub.serialAvailable) {
+  if (!SpikeHub.bluetoothAvailable && !SpikeHub.serialAvailable) {
     const b = $('browserBanner');
     b.hidden = false;
     b.textContent = 'This browser cannot talk to the hub. Open this file in Google Chrome or Microsoft Edge on a computer or Chromebook.';
@@ -6022,6 +6034,7 @@ def _start(source):
   new MutationObserver(syncBlocklyTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme', 'data-contrast'] });
   const onDeviceChange = () => { if (displayMode === 'auto') applyDisplay(); };
   darkQuery.addEventListener('change', onDeviceChange);
+  new ResizeObserver(() => { try { Blockly.svgResize(workspace); } catch (e) {} }).observe(document.querySelector('.blocks-host'));
   contrastQuery.addEventListener('change', onDeviceChange);
 
   // Display menu
@@ -6060,14 +6073,14 @@ def _start(source):
         type: 'ct_forever', inputs: { DO: { block: {
           type: 'gp_drive', fields: { MODE: 'split', L: 'A', R: 'B', REV: true }, inputs: { SPD: { shadow: { type: 'math_number', fields: { NUM: 80 } } } },
         } } } } } } } },
-      { type: 'ev_gp_button', x: 460, y: 40, fields: { BTN: '0' }, next: { block: {
+      { type: 'ev_gp_button', x: 880, y: 40, fields: { BTN: '0' }, next: { block: {
         type: 'so_beep_for', inputs: { NOTE: { shadow: { type: 'math_number', fields: { NUM: 76 } } }, S: { shadow: { type: 'math_number', fields: { NUM: 0.15 } } } },
         next: { block: { type: 'gp_rumble', inputs: { S: { shadow: { type: 'math_number', fields: { NUM: 0.2 } } } } } } } } },
-      { type: 'ev_gp_button', x: 460, y: 200, fields: { BTN: '5' }, next: { block: {
+      { type: 'ev_gp_button', x: 880, y: 200, fields: { BTN: '5' }, next: { block: {
         type: 'mo_run_for', fields: { PORT: 'C', DIR: '1', UNIT: 'deg' }, inputs: { N: { shadow: { type: 'math_number', fields: { NUM: 90 } } } } } } },
-      { type: 'ev_gp_button', x: 460, y: 320, fields: { BTN: '4' }, next: { block: {
+      { type: 'ev_gp_button', x: 880, y: 320, fields: { BTN: '4' }, next: { block: {
         type: 'mo_run_for', fields: { PORT: 'C', DIR: '-1', UNIT: 'deg' }, inputs: { N: { shadow: { type: 'math_number', fields: { NUM: 90 } } } } } } },
-      { type: 'ev_gp_button', x: 460, y: 440, fields: { BTN: '3' }, next: { block: {
+      { type: 'ev_gp_button', x: 880, y: 440, fields: { BTN: '3' }, next: { block: {
         type: 'so_computer', fields: { SND: 'horn' } } } },
     ] },
   };
@@ -6451,7 +6464,6 @@ ${RT.slice(RT.indexOf('def _maxdps'), RT.indexOf('def _pct'))}${RT.slice(RT.inde
     return lastEditor === 'python' ? pyInput.value : HB.generateProgram(workspace);
   }
   async function send(source, slot, andRun) {
-    if (!hub.connected && hubBlocked) { showOpenPrompt('To send a program to a robot, open HubPilot in its own tab. Your project comes with it.'); return false; }
     if (!hub.connected) { toast('Connect your hub first.'); toggleMenu($('connectBtn'), $('connectMenu'), true); return false; }
     if (busy) return false;
     busy = true; progress(0);
@@ -6600,20 +6612,44 @@ ${RT.slice(RT.indexOf('def _maxdps'), RT.indexOf('def _pct'))}${RT.slice(RT.inde
   const vstate = { lx: 0, ly: 0, rx: 0, ry: 0, lt: 0, rt: 0, buttons: 0 };
   let vpadOpen = false;
   const vpad = $('vpad');
+  // the controller can sit docked under the code, or fill the page
+  let vpadMode = store.get('hubpilot.vpadMode', 'dock');
+  const stageEl = document.querySelector('.stage');
+  function placeVpad() {
+    const docked = vpadMode === 'dock' && window.innerWidth >= 700;
+    vpad.classList.toggle('docked', docked);
+    document.body.classList.toggle('dock-open', docked);
+    vpad.setAttribute('role', docked ? 'region' : 'dialog');
+    if (docked && vpad.parentElement !== stageEl) stageEl.appendChild(vpad);
+    if (!docked && vpad.parentElement !== document.body) document.body.appendChild(vpad);
+    $('vpadDock').textContent = docked ? 'Make it big' : 'Dock under code';
+    $('vpadTitle').textContent = docked ? 'Controller' : 'On-screen controller';
+    requestAnimationFrame(() => { try { Blockly.svgResize(workspace); } catch (e) {} if (typeof simDraw === 'function') simDraw(); });
+  }
   function openVpad() {
-    vpadOpen = true; vpad.hidden = false; syncVpadStatus();
-    try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
+    vpadOpen = true; placeVpad(); vpad.hidden = false; syncVpadStatus();
+    if (!vpad.classList.contains('docked')) {
+      try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock('landscape').catch(() => {}); } catch (e) {}
+    }
+    requestAnimationFrame(() => { try { Blockly.svgResize(workspace); } catch (e) {} });
   }
   function closeVpad() {
-    vpadOpen = false; vpad.hidden = true;
+    vpadOpen = false; vpad.hidden = true; document.body.classList.remove('dock-open');
     Object.assign(vstate, { lx: 0, ly: 0, rx: 0, ry: 0, lt: 0, rt: 0, buttons: 0 });
     vpad.querySelectorAll('.on, .active').forEach((el) => el.classList.remove('on', 'active'));
     vpad.querySelectorAll('.vknob').forEach((k) => { k.style.transform = ''; });
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    requestAnimationFrame(() => { try { Blockly.svgResize(workspace); } catch (e) {} });
   }
   $('vpadOpen').onclick = openVpad;
-  $('vpadOpenTop').onclick = openVpad;
+  $('vpadOpenTop').onclick = () => (vpadOpen ? closeVpad() : openVpad());
   $('vpadClose').onclick = closeVpad;
+  $('vpadDock').onclick = () => {
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+    vpadMode = vpad.classList.contains('docked') ? 'full' : 'dock';
+    store.set('hubpilot.vpadMode', vpadMode); placeVpad();
+  };
+  window.addEventListener('resize', () => { if (vpadOpen) placeVpad(); });
   $('vpadFull').onclick = () => {
     if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     else if (vpad.requestFullscreen) vpad.requestFullscreen().catch(() => toast('This browser would not go full screen.'));
@@ -6752,6 +6788,35 @@ ${RT.slice(RT.indexOf('def _maxdps'), RT.indexOf('def _pct'))}${RT.slice(RT.inde
     else { st.textContent = 'Not found'; st.className = 'pill'; }
   }
 
+
+  // ---- blocks light up while their controller input is in use ----
+  let litBlocks = new Set();
+  function controllerBlockActive(b, s) {
+    const stick = Math.max(Math.abs(s.lx), Math.abs(s.ly), Math.abs(s.rx), Math.abs(s.ry)) > 0.05;
+    switch (b.type) {
+      case 'ev_gp_button': case 'gp_button': return !!(s.buttons & (1 << +b.getFieldValue('BTN')));
+      case 'gp_axis': return Math.abs([s.lx, s.ly, s.rx, s.ry][+b.getFieldValue('AX')]) > 0.05;
+      case 'gp_trigger': return (b.getFieldValue('T') === '0' ? s.lt : s.rt) > 0.05;
+      case 'gp_drive': return stick;
+      default: return false;
+    }
+  }
+  function highlightControllerBlocks(s) {
+    const want = new Set();
+    if (view === 'blocks' && s.source !== 'none') {
+      for (const b of workspace.getAllBlocks(false)) {
+        if (!controllerBlockActive(b, s)) continue;
+        want.add(b.id);
+        // a "when controller button pressed" hat lights its whole stack
+        if (b.type === 'ev_gp_button') b.getDescendants(false).forEach((d) => want.add(d.id));
+      }
+    }
+    const mark = (id, on) => { const blk = workspace.getBlockById(id); const root = blk && blk.getSvgRoot(); if (root) root.classList.toggle('hp-live', on); };
+    for (const id of litBlocks) if (!want.has(id)) mark(id, false);
+    for (const id of want) if (!litBlocks.has(id)) mark(id, true);
+    litBlocks = want;
+  }
+
   // --- streaming to the hub
   let lastPayload = '', lastSent = 0, sentCount = 0, driving = false;
   function packet(s) {
@@ -6768,6 +6833,7 @@ ${RT.slice(RT.indexOf('def _maxdps'), RT.indexOf('def _pct'))}${RT.slice(RT.inde
     const s = readInput();
     if (view === 'controller') drawInput(s);
     if (vpadOpen) drawVpad(s);
+    try { highlightControllerBlocks(s); } catch (e) { /* block removed mid-update */ }
     if (simRunner && sim.running && s.source !== 'none') simRunner.deliverTunnel(packet(s));
     if (!hub.connected || !(hub.running || driving) || busy) return;
     if (s.source === 'none') return;
@@ -7077,69 +7143,6 @@ runloop.run(_drive(), _buttons())
   }
 
 
-  // ------------------------------------------------------ embedded mode ---
-  const openableUrl = /^https?:$/.test(location.protocol) ? location.href.split('#')[0] : '';
-  function openFull() {
-    if (!openableUrl) { showOpenPrompt('This copy of HubPilot was pasted into the page, so it has no link of its own. Use the HubPilot link your teacher shared, or open the HubPilot file in Chrome.'); return; }
-    let w = null;
-    try { w = window.open(openableUrl, '_blank'); } catch (e) { w = null; }
-    if (!w) { showOpenPrompt('Your browser blocked the new tab. Copy this link into a new tab instead:', true); return; }
-    // hand the current project to the new tab so no work is lost
-    const project = snapshot();
-    let tries = 0, acked = false;
-    const onAck = (e) => { if (e.source === w && e.data && e.data.type === 'hubpilot-handoff-ok') { acked = true; window.removeEventListener('message', onAck); } };
-    window.addEventListener('message', onAck);
-    const timer = setInterval(() => {
-      if (acked || ++tries > 40) { clearInterval(timer); window.removeEventListener('message', onAck); return; }
-      try { w.postMessage({ type: 'hubpilot-handoff', project }, location.origin); } catch (e) { /* not ready yet */ }
-    }, 300);
-    toast('HubPilot opened in a new tab. Connect your hub there.');
-  }
-  function showOpenPrompt(text, withLink) {
-    $('openText').textContent = text;
-    const hasLink = !!openableUrl && (withLink || true);
-    $('openLinkRow').hidden = !hasLink;
-    $('openUrl').value = openableUrl;
-    $('openGo').hidden = !openableUrl;
-    $('openModal').hidden = false;
-    (openableUrl ? $('openGo') : $('openClose')).focus();
-  }
-  $('openClose').onclick = () => { $('openModal').hidden = true; };
-  $('openGo').onclick = () => { $('openModal').hidden = true; openFull(); };
-  $('openCopy').onclick = async () => {
-    try { await navigator.clipboard.writeText(openableUrl); toast('Link copied.'); }
-    catch (e) { $('openUrl').select(); toast('Press Ctrl+C to copy the link.'); }
-  };
-  $('openModal').addEventListener('keydown', (e) => { if (e.key === 'Escape') $('openModal').hidden = true; });
-
-  if (hubBlocked) {
-    document.documentElement.classList.add('embedded');
-    const b = $('browserBanner');
-    b.hidden = false; b.classList.add('embed-banner');
-    b.innerHTML = '<span><b>Embedded view.</b> Coding and the simulator work here. To connect a robot, open HubPilot in its own tab.</span>';
-    const go = document.createElement('button'); go.className = 'btn btn-small btn-accent'; go.textContent = 'Open in new tab ↗';
-    go.onclick = openFull; b.appendChild(go);
-    const cb = $('connectBtn');
-    cb.onclick = (e) => { e.stopPropagation(); openFull(); };
-    cb.removeAttribute('aria-haspopup'); cb.removeAttribute('aria-expanded');
-    cb.title = 'Browsers do not allow Bluetooth or USB inside an embedded page';
-    $('connectLabel').textContent = 'Connect ↗';
-    $('statusDot').hidden = true;
-    setRunState('Open in new tab');
-  }
-  // receive a project handed over from an embedded copy of HubPilot
-  if (!framed && window.opener) {
-    const onHandoff = (e) => {
-      if (e.origin !== location.origin || !e.data || e.data.type !== 'hubpilot-handoff') return;
-      window.removeEventListener('message', onHandoff);
-      const p = e.data.project;
-      if (p && p.app === 'HubPilot') { applyProject(p); store.set('hubpilot.project', p); toast('Your project came over from the embedded page.'); }
-      try { e.source.postMessage({ type: 'hubpilot-handoff-ok' }, e.origin); } catch (x) { /* ignore */ }
-    };
-    window.addEventListener('message', onHandoff);
-    setTimeout(() => window.removeEventListener('message', onHandoff), 15000);
-  }
-
   // read-only handle for automated checks
   window.HubPilotDebug = { get sim() { return sim; }, get runner() { return simRunner; }, setView: (v) => setView(v), source: () => currentSource() };
 
@@ -7148,8 +7151,7 @@ runloop.run(_drive(), _buttons())
   if (saved && saved.app === 'HubPilot') applyProject(saved);
   else applyProject({ name: 'My Robot', blocks: STARTER, python: PY_TEMPLATE });
   renderPadList();
-  log(hubBlocked ? 'Welcome to HubPilot. You can code and use the simulator here. To connect a robot, use "Open in new tab".'
-    : 'Welcome to HubPilot. Connect your hub with the button at the top right.', 'info');
+  log('Welcome to HubPilot. Connect your hub with the button at the top right.', 'info');
   if (location.protocol === 'http:' && !/^(localhost|127\.)/.test(location.hostname)) {
     log('Bluetooth needs a secure page. Open this file directly, or host it on an https:// site.', 'err');
   }
